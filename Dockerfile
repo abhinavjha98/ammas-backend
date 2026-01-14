@@ -23,4 +23,5 @@ RUN mkdir -p data
 EXPOSE 8000
 
 # Use gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--timeout", "600", "--workers", "2", "--threads", "2", "app:create_app"]
+# wsgi.py creates the app instance that gunicorn can use
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--timeout", "600", "--workers", "2", "--threads", "2", "wsgi:app"]

@@ -33,8 +33,24 @@ def create_app(config_name='development'):
         app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
         app.config['AI_SERVICE_URL'] = os.getenv('AI_SERVICE_URL', 'http://localhost:8001')
     else:
-        # Production config
-        app.config.from_object('config.ProductionConfig')
+        # Production config - use environment variables
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+        if not app.config['SQLALCHEMY_DATABASE_URI']:
+            raise ValueError('DATABASE_URL environment variable is required for production')
+        app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+        if not app.config['JWT_SECRET_KEY']:
+            raise ValueError('JWT_SECRET_KEY environment variable is required for production')
+        app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+        app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
+        app.config['STRIPE_PUBLIC_KEY'] = os.getenv('STRIPE_PUBLIC_KEY', '')
+        app.config['STRIPE_SECRET_KEY'] = os.getenv('STRIPE_SECRET_KEY', '')
+        app.config['GOOGLE_MAPS_API_KEY'] = os.getenv('GOOGLE_MAPS_API_KEY', '')
+        app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+        app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', '')
+        app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
+        app.config['AI_SERVICE_URL'] = os.getenv('AI_SERVICE_URL', '')
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
