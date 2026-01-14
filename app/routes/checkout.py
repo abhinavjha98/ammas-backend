@@ -101,9 +101,9 @@ def create_payment_intent(current_user):
     total_amount = subtotal + delivery_charge + tax
     
     # Create Stripe payment intent
-    stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY') or 'sk_test_51SpGQtF5Zsiqo5SKYXS209JyRf3d0IbuBvx8g3O4du4yaPD5MZsp2wZuQ8QqNfvpdlNU3xNq9mNa8kpvPcWFG7Oq007iVewI7L'
+    stripe_secret_key = current_app.config.get('STRIPE_SECRET_KEY')
     
-    if not stripe.api_key or stripe.api_key == '':
+    if not stripe_secret_key:
         # Demo mode - return mock payment intent
         return jsonify({
             'payment_intent_id': f'pi_demo_{datetime.utcnow().timestamp()}',
@@ -119,11 +119,14 @@ def create_payment_intent(current_user):
                     'dish_id': item['dish'].id,
                     'dish_name': item['dish'].name,
                     'quantity': item['quantity'],
-                    'price': item['dish'].price,
+                    'price': item['price_gbp'], # Use converted price
                     'subtotal': item['subtotal']
                 } for item in items_data]
             }
         }), 200
+    
+    # Set Stripe API key for production
+    stripe.api_key = stripe_secret_key
     
     try:
         intent = stripe.PaymentIntent.create(
@@ -219,12 +222,14 @@ def confirm_order(current_user):
     
     # Verify payment (in production, verify with Stripe)
     payment_status = 'paid'
-    if not current_app.config.get('STRIPE_SECRET_KEY'):
+    stripe_secret_key = current_app.config.get('STRIPE_SECRET_KEY')
+    
+    if not stripe_secret_key:
         # Demo mode
         payment_status = 'paid'
     else:
         try:
-            stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY') or 'sk_test_51SpGQtF5Zsiqo5SKYXS209JyRf3d0IbuBvx8g3O4du4yaPD5MZsp2wZuQ8QqNfvpdlNU3xNq9mNa8kpvPcWFG7Oq007iVewI7L'
+            stripe.api_key = stripe_secret_key
             intent = stripe.PaymentIntent.retrieve(payment_intent_id)
             if intent.status != 'succeeded':
                 payment_status = 'failed'
