@@ -20,7 +20,7 @@ app = create_app()
 
 with app.app_context():
     print("=" * 60)
-    print("TESTING RECOMMENDATIONS")
+    print("TESTING RECOMMENDATIONsS")
     print("=" * 60)
     
     # Check database state
